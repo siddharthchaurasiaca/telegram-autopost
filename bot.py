@@ -13,7 +13,7 @@ def get_gpt_reply(message):
         "Content-Type": "application/json"
     }
     data = {
-        "model": "llama3-8b-8192",
+        "model": "llama-3.3-70b-versatile",
         "messages": [
             {"role": "system", "content": "You are a helpful assistant."},
             {"role": "user", "content": message}
