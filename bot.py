@@ -5,7 +5,7 @@ from flask import Flask, request
 app = Flask(__name__)
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-GROQ_API_KEY = os.getenv("OPENAI_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 SERPER_API_KEY = os.getenv("SERPER_API_KEY")
 
 SYSTEM_PROMPT = """
@@ -82,7 +82,7 @@ def web_search(query):
         }
         response = requests.post("https://google.serper.dev/search", headers=headers, json=data)
         results = response.json()
-        
+
         search_text = ""
         if "organic" in results:
             for item in results["organic"][:3]:
@@ -90,7 +90,7 @@ def web_search(query):
                 snippet = item.get("snippet", "")
                 link = item.get("link", "")
                 search_text += f"Title: {title}\nSummary: {snippet}\nSource: {link}\n\n"
-        
+
         return search_text if search_text else "No results found."
     except Exception as e:
         print(f"Search error: {e}")
@@ -98,24 +98,24 @@ def web_search(query):
 
 def is_tradetron_query(message):
     tradetron_keywords = [
-        "tradetron", "adjustment", "pnl", "deploy", "broker", 
+        "tradetron", "adjustment", "pnl", "deploy", "broker",
         "connect", "share code", "strategy", "position", "exit",
         "pause", "validity", "subscription", "error", "token",
-        "zerodha", "angelone", "upstox", "fyers", "groww"
+        "zerodha", "angelone", "upstox", "fyers", "groww",
+        "nifty", "sensex", "banknifty", "bnf", "expiry",
+        "hedge", "option", "drawdown", "profit", "loss"
     ]
     message_lower = message.lower()
     return any(keyword in message_lower for keyword in tradetron_keywords)
 
 def get_reply(message):
-    # Search web for Tradetron queries
     search_context = ""
     if is_tradetron_query(message):
-        search_query = f"tradetron {message} site:tradetron.tech OR tradetron help"
+        search_query = f"tradetron {message}"
         print(f"Searching web for: {search_query}")
         search_context = web_search(search_query)
         print(f"Search results: {search_context}")
 
-    # Build prompt with search context
     user_message = message
     if search_context:
         user_message = f"""User question: {message}
@@ -123,8 +123,9 @@ def get_reply(message):
 Relevant web search results:
 {search_context}
 
-Using the above search results and your knowledge, provide a clear and accurate answer. 
-Ignore irrelevant search results. Give practical step-by-step help if needed."""
+Using the above search results and your knowledge, provide a clear and accurate answer.
+Ignore irrelevant search results. Give practical step-by-step help if needed.
+Write in plain text, no markdown formatting."""
 
     headers = {
         "Authorization": f"Bearer {GROQ_API_KEY}",
@@ -138,11 +139,18 @@ Ignore irrelevant search results. Give practical step-by-step help if needed."""
         ],
         "temperature": 0.3
     }
+
+    print(f"Using GROQ_API_KEY: {GROQ_API_KEY[:10] if GROQ_API_KEY else 'NOT SET'}...")
+
     response = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=data)
     result = response.json()
     print("GROQ RESPONSE:", result)
+
     if "choices" in result:
         return result["choices"][0]["message"]["content"]
+    elif "error" in result:
+        print(f"GROQ ERROR: {result['error']}")
+        return "Sorry, I could not process your request. Please DM CA Siddharth directly."
     else:
         return "Sorry, I could not process your request. Please DM CA Siddharth directly."
 
