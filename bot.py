@@ -130,12 +130,10 @@ def send_message(chat_id, text, reply_to_message_id=None):
     print("SEND RESULT:", r.json())
 
 def is_bot_mentioned(message_data):
-    # Check if bot is tagged in text
     text = message_data.get("text", "")
     if "@CASIDDBOT" in text.upper():
         return True
-    
-    # Check if bot is tagged via entities
+
     entities = message_data.get("entities", [])
     for entity in entities:
         if entity.get("type") == "mention":
@@ -144,38 +142,44 @@ def is_bot_mentioned(message_data):
             mention = text[start:start+length]
             if "CASIDDBOT" in mention.upper():
                 return True
-    
-    # Check if it's a reply to bot's message
+
     reply = message_data.get("reply_to_message", {})
     if reply.get("from", {}).get("is_bot") and reply.get("from", {}).get("username", "").upper() == "CASIDDBOT":
         return True
-    
+
     return False
 
 @app.route("/", methods=["POST"])
 def webhook():
     data = request.json
     print("INCOMING:", data)
-    
+
     if "message" in data:
         message = data["message"]
         chat_id = message["chat"]["id"]
         text = message.get("text", "")
         message_id = message.get("message_id")
-        
+
         print(f"RECEIVED: {text} from chat {chat_id}")
-        
-        # Only reply if bot is tagged or it's a private chat
+
         chat_type = message.get("chat", {}).get("type", "")
-        
+
         if chat_type == "private" or is_bot_mentioned(message):
-            if text:
-                # Remove bot mention from text before sending to AI
-                clean_text = text.replace("@CASIDDBOT", "").replace("@casiddbot", "").strip()
+            # Remove bot mention from text
+            clean_text = text.replace("@CASIDDBOT", "").replace("@casiddbot", "").strip()
+
+            # If text empty after removing tag, read the replied-to message
+            if not clean_text:
+                replied_msg = message.get("reply_to_message", {})
+                clean_text = replied_msg.get("text", "")
+                # Add context that this is a forwarded query
                 if clean_text:
-                    reply = get_gpt_reply(clean_text)
-                    send_message(chat_id, reply, reply_to_message_id=message_id)
-    
+                    clean_text = f"A member asked: {clean_text}"
+
+            if clean_text:
+                reply = get_gpt_reply(clean_text)
+                send_message(chat_id, reply, reply_to_message_id=message_id)
+
     return "ok"
 
 @app.route("/", methods=["GET"])
