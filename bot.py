@@ -20,7 +20,14 @@ def get_gpt_reply(message):
         ]
     }
     response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=data)
-    return response.json()["choices"][0]["message"]["content"]
+    result = response.json()
+    
+    if "choices" in result:
+        return result["choices"][0]["message"]["content"]
+    elif "error" in result:
+        return f"API Error: {result['error']['message']}"
+    else:
+        return "Sorry, I could not process your request."
 
 def send_message(chat_id, text):
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
