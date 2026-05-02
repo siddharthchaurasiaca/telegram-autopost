@@ -6,14 +6,15 @@ app = Flask(__name__)
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 GROQ_API_KEY = os.getenv("OPENAI_API_KEY")
+SERPER_API_KEY = os.getenv("SERPER_API_KEY")
 
 SYSTEM_PROMPT = """
 You are a professional assistant for "Algo with CA Siddharth" trading group on Telegram.
 
 Your job:
 1. Answer questions about our strategies, subscription, Tradetron platform
-2. For Tradetron-related questions, use your knowledge of Tradetron platform
-3. Give clean, simple, WhatsApp-style replies — no markdown, no asterisks, no bullet symbols
+2. For Tradetron-related questions, use the web search results provided to give accurate answers
+3. Give clean, simple replies — no markdown, no asterisks, no bullet symbols
 4. Be friendly, concise and accurate
 
 === SUBSCRIPTION MODEL ===
@@ -60,15 +61,6 @@ HDFC Bank: Siddharth Chaurasia, A/c: 50100075734852, IFSC: HDFC0000001
 ICICI Bank: A/c: 003201540324, IFSC: ICIC0000032
 UPI: siddharthchaurasiaca@okhdfc bank or siddharthchaurasiaca@okicici
 
-=== TRADETRON HELP ===
-Help users with all Tradetron queries:
-- How to create account and connect broker
-- How to deploy using share code
-- How to check PnL and performance
-- How to pause or exit strategy
-- Subscription validity and renewal
-- Common errors and troubleshooting
-
 === REPLY STYLE ===
 - Write like a helpful human, not a robot
 - No markdown formatting — no **, no *, no #, no bullet dashes
@@ -78,7 +70,62 @@ Help users with all Tradetron queries:
 - For anything outside scope, say: "For this query, please DM CA Siddharth directly."
 """
 
-def get_gpt_reply(message):
+def web_search(query):
+    try:
+        headers = {
+            "X-API-KEY": SERPER_API_KEY,
+            "Content-Type": "application/json"
+        }
+        data = {
+            "q": query,
+            "num": 3
+        }
+        response = requests.post("https://google.serper.dev/search", headers=headers, json=data)
+        results = response.json()
+        
+        search_text = ""
+        if "organic" in results:
+            for item in results["organic"][:3]:
+                title = item.get("title", "")
+                snippet = item.get("snippet", "")
+                link = item.get("link", "")
+                search_text += f"Title: {title}\nSummary: {snippet}\nSource: {link}\n\n"
+        
+        return search_text if search_text else "No results found."
+    except Exception as e:
+        print(f"Search error: {e}")
+        return ""
+
+def is_tradetron_query(message):
+    tradetron_keywords = [
+        "tradetron", "adjustment", "pnl", "deploy", "broker", 
+        "connect", "share code", "strategy", "position", "exit",
+        "pause", "validity", "subscription", "error", "token",
+        "zerodha", "angelone", "upstox", "fyers", "groww"
+    ]
+    message_lower = message.lower()
+    return any(keyword in message_lower for keyword in tradetron_keywords)
+
+def get_reply(message):
+    # Search web for Tradetron queries
+    search_context = ""
+    if is_tradetron_query(message):
+        search_query = f"tradetron {message} site:tradetron.tech OR tradetron help"
+        print(f"Searching web for: {search_query}")
+        search_context = web_search(search_query)
+        print(f"Search results: {search_context}")
+
+    # Build prompt with search context
+    user_message = message
+    if search_context:
+        user_message = f"""User question: {message}
+
+Relevant web search results:
+{search_context}
+
+Using the above search results and your knowledge, provide a clear and accurate answer. 
+Ignore irrelevant search results. Give practical step-by-step help if needed."""
+
     headers = {
         "Authorization": f"Bearer {GROQ_API_KEY}",
         "Content-Type": "application/json"
@@ -87,9 +134,9 @@ def get_gpt_reply(message):
         "model": "llama-3.3-70b-versatile",
         "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": message}
+            {"role": "user", "content": user_message}
         ],
-        "temperature": 0.4
+        "temperature": 0.3
     }
     response = requests.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=data)
     result = response.json()
@@ -156,7 +203,7 @@ def webhook():
                     clean_text = f"{replied_name} asked: {replied_text}"
 
             if clean_text:
-                reply = get_gpt_reply(clean_text)
+                reply = get_reply(clean_text)
                 send_message(chat_id, reply, reply_to_message_id=message_id)
 
     return "ok"
