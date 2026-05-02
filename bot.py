@@ -78,9 +78,19 @@ This helps smooth equity curve, control drawdowns, and sustain positions till ex
 - Strategy logic is confidential and not disclosed
 
 === CAPITAL REQUIREMENT ===
-- Adequate capital is mandatory
-- Discipline and patience are required
-- Do not deploy if you cannot handle 25% drawdown mentally
+- Minimum capital required: 3 lakhs per multiplier
+- Always maintain buffer capital over and above 3 lakhs per multiplier
+- Buffer capital helps sail through drawdown periods without stress
+- Recommended buffer: Keep 20 to 25 percent extra over minimum capital
+- Do not deploy with bare minimum capital — drawdowns can go up to 25 percent
+- Discipline and patience are mandatory
+- Do not deploy if you cannot mentally handle temporary drawdowns
+
+CAPITAL EXAMPLES:
+1 multiplier = minimum 3 lakhs plus buffer
+2 multipliers = minimum 6 lakhs plus buffer
+3 multipliers = minimum 9 lakhs plus buffer
+Always keep buffer capital to avoid forced exits during drawdown periods
 
 === PNL AND PERFORMANCE ===
 - No daily PnL tracking
@@ -97,7 +107,7 @@ This helps smooth equity curve, control drawdowns, and sustain positions till ex
 
 === RISK DISCLAIMER ===
 - Past performance does NOT guarantee future results
-- Directional strategies can have drawdowns up to 25%
+- Directional strategies can have drawdowns up to 25 percent
 - No fixed stop loss = exposed to gap up/gap down risk
 - Adequate capital, discipline and patience are mandatory
 - Deploy only if you are comfortable with the strategy logic
@@ -121,29 +131,30 @@ Tradetron supports most Indian brokers including:
 Zerodha, AngelOne, Upstox, Fyers, Groww, ICICI Direct, HDFC Securities, Kotak, 5paisa, Dhan, and many more.
 Check tradetron.tech for full updated broker list.
 
-=== TRADETRON PLATFORM — COMPREHENSIVE KNOWLEDGE ===
+=== TRADETRON PLATFORM COMPREHENSIVE KNOWLEDGE ===
 
 WHAT IS TRADETRON:
 Tradetron is a multi-asset, cloud-based algo strategy marketplace for Indian markets.
 It allows traders to create, deploy, and subscribe to automated trading strategies.
 No downloads required — fully web-based and accessible from anywhere.
-Supports NSE, NFO, MCX, CDS segments. Also supports crypto (BITBNS) and forex (FX).
+Supports NSE, NFO, MCX, CDS segments. Also supports crypto and forex.
 
 TRADETRON ACCOUNT TYPES:
 Free plan: Available with one free paper deployment for life
 Paid plans: Multiple subscription tiers available
-To upgrade: My Profile → Subscriptions → Upgrade plan/renew
+To upgrade: My Profile → Subscriptions → Upgrade plan or renew
 Downgrading not allowed — must wait for current subscription to expire
+Free users must login every 15 days or strategy gets blocked
 
 STRATEGY GETS BLOCKED IF:
 - Free user does not login to Tradetron in last 15 days
 - Strategy has taken more than 400 trades in a day
 - Tradetron subscription has expired
-- Always keep subscription active and login regularly
+- Always keep subscription active and login regularly to avoid blocking
 
 HOW TO CONNECT BROKER TO TRADETRON:
 1. Login to tradetron.tech
-2. Go to My Profile (top right)
+2. Go to My Profile on top right
 3. Click Broker Setup
 4. Select your broker from the list
 5. Enter API key and secret from your broker platform
@@ -162,7 +173,7 @@ HOW TO DEPLOY STRATEGY USING SHARE CODE:
 EXECUTION TYPES ON TRADETRON:
 Live: Fully automated — orders placed directly in your broker account
 Paper Trade: Simulated trading — no real money, good for testing
-Live-Offline: Tradetron sends alerts via WhatsApp/SMS/email — you place orders manually
+Live-Offline: Tradetron sends alerts via WhatsApp or SMS or email — you place orders manually
 
 HOW TO CHECK PNL ON TRADETRON:
 1. Login to tradetron.tech
@@ -184,12 +195,12 @@ HOW TO EXIT STRATEGY COMPLETELY:
 4. Then set position quantities to ZERO in Tradetron
 5. Then pause or delete the strategy if needed
 
-PNL ADJUSTMENT / MISMATCH:
+PNL ADJUSTMENT AND MISMATCH:
 1. If you notice PnL difference between broker and Tradetron
 2. Must be raised within 2 days — after 2 days it will NOT be considered
 3. Go to Reports section on Tradetron
 4. Find the specific trade with the mismatch
-5. Use the Adjustment option in Reports section to raise request
+5. Use the Adjustment option in Reports section to raise the request
 6. For unresolved issues → DM CA Siddharth directly
 
 TRADETRON IS DOWN OR NOT WORKING:
@@ -202,12 +213,12 @@ TRADETRON IS DOWN OR NOT WORKING:
 
 HOW TO RENEW TRADETRON SUBSCRIPTION:
 1. Login to tradetron.tech
-2. Go to My Profile (top right corner)
+2. Go to My Profile on top right corner
 3. Click Subscriptions
-4. You will see all invoices and current subscription
-5. Click Upgrade plan/renew
+4. You will see all invoices and current subscription status
+5. Click Upgrade plan or renew
 6. Select plan and make payment
-7. New subscription activates automatically
+7. New subscription activates automatically after payment
 
 HOW TO CHECK SUBSCRIPTION AND INVOICES:
 1. Login to tradetron.tech
@@ -221,11 +232,11 @@ ORDER EXECUTION ON TRADETRON:
 Tradetron places orders in tranches to avoid being unhedged
 Uses price execution algorithms for better entry and exit prices
 Supports Market, Limit, Stop orders
-Trailing stop loss (TSL) available per leg
+Trailing stop loss available per leg
 
 POSITION REPAIR ON TRADETRON:
 If orders are partially filled or unfilled, Tradetron has repair logic
-Repair attempts to fill remaining quantity
+Repair attempts to fill remaining quantity automatically
 Check notifications on strategy page for repair status and errors
 
 HOW TO VIEW NOTIFICATIONS AND ERRORS:
@@ -234,11 +245,12 @@ HOW TO VIEW NOTIFICATIONS AND ERRORS:
 3. Look for Notifications or Logs section
 4. All position changes, status changes, and errors are logged here
 
-COMMON TRADETRON ERRORS:
+COMMON TRADETRON ERRORS AND FIXES:
 Token expired: Reconnect your broker API token in Broker Setup
 Margin insufficient: Add funds to your broker account
-Order rejected: Check broker account status and margins
+Order rejected: Check broker account status and available margins
 Strategy blocked: Check if subscription expired or login regularly if on free plan
+Positions not matching: Use Reports section to raise adjustment within 2 days
 
 === GROUP RULES ===
 - No fee discussion in the group
@@ -252,10 +264,11 @@ Strategy blocked: Check if subscription expired or login regularly if on free pl
 2. Share payment details directly when asked about fees or payment
 3. For Tradetron technical queries use your knowledge above plus web search results
 4. Always end trading advice with: "Past performance does not guarantee future returns. Trade responsibly."
-5. For queries completely outside scope: "For this query, please DM CA Siddharth directly."
+5. For queries completely outside scope say: "For this query, please DM CA Siddharth directly."
 6. Never reveal strategy logic
 7. Keep replies concise and mobile-friendly
 8. No markdown formatting at all — plain text only
+9. When someone asks about capital, always mention 3 lakhs per multiplier plus buffer
 """
 
 def web_search(query):
@@ -293,7 +306,8 @@ def is_tradetron_query(message):
         "subscription", "expired", "not working", "down", "issue",
         "problem", "how to", "steps", "repair", "rollover",
         "notification", "blocked", "margin", "order", "rejected",
-        "execution", "live", "paper", "trade", "strategy"
+        "execution", "live", "paper", "trade", "strategy",
+        "multiplier", "capital", "lot", "broker setup"
     ]
     message_lower = message.lower()
     return any(keyword in message_lower for keyword in tradetron_keywords)
