@@ -1,12 +1,17 @@
 import os
 import requests
 from flask import Flask, request
+from collections import defaultdict, deque
 
 app = Flask(__name__)
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 SERPER_API_KEY = os.getenv("SERPER_API_KEY")
+
+# In-memory store: chat_id -> deque of last N messages
+# Each entry: {"from": "Name", "text": "..."}
+MESSAGE_HISTORY = defaultdict(lambda: deque(maxlen=30))
 
 SYSTEM_PROMPT = """
 You are a professional assistant for "Algo with CA Siddharth" trading group on Telegram.
@@ -312,7 +317,25 @@ def is_tradetron_query(message):
     message_lower = message.lower()
     return any(keyword in message_lower for keyword in tradetron_keywords)
 
-def get_reply(message):
+def format_history_context(chat_id, exclude_text=None):
+    """Format recent group messages into a readable context string."""
+    history = MESSAGE_HISTORY.get(chat_id)
+    if not history:
+        return ""
+
+    lines = []
+    for entry in history:
+        # Skip the current message itself to avoid duplication
+        if exclude_text and entry["text"] == exclude_text:
+            continue
+        lines.append(f"{entry['from']}: {entry['text']}")
+
+    if not lines:
+        return ""
+
+    return "\n".join(lines[-20:])  # Use last 20 relevant messages
+
+def get_reply(message, chat_id=None):
     search_context = ""
     if is_tradetron_query(message):
         search_query = f"tradetron.tech {message}"
@@ -320,15 +343,27 @@ def get_reply(message):
         search_context = web_search(search_query)
         print(f"Search results: {search_context}")
 
-    user_message = message
+    # Build group history context
+    history_context = ""
+    if chat_id:
+        history_context = format_history_context(chat_id, exclude_text=message)
+
+    # Compose user message with all context
+    user_message = f"User question: {message}"
+
+    if history_context:
+        user_message = (
+            f"Recent group conversation for context (last few messages before this question):\n"
+            f"{history_context}\n\n"
+            f"{user_message}"
+        )
+
     if search_context:
-        user_message = f"""User question: {message}
-
-Relevant web search results for reference:
-{search_context}
-
-Using the above search results and your built-in knowledge, provide a clear and accurate answer.
-Write in plain text only, no markdown, no asterisks."""
+        user_message += (
+            f"\n\nRelevant web search results for reference:\n{search_context}\n\n"
+            f"Using the above search results and your built-in knowledge, provide a clear and accurate answer.\n"
+            f"Write in plain text only, no markdown, no asterisks."
+        )
 
     headers = {
         "Authorization": f"Bearer {GROQ_API_KEY}",
@@ -403,6 +438,19 @@ def webhook():
 
         chat_type = message.get("chat", {}).get("type", "")
 
+        # Always store every non-empty message into history (for all group messages)
+        if text:
+            sender = message.get("from", {})
+            sender_name = sender.get("first_name", "Unknown")
+            if sender.get("last_name"):
+                sender_name += f" {sender['last_name']}"
+            # Don't store bot's own messages
+            if not sender.get("is_bot"):
+                MESSAGE_HISTORY[chat_id].append({
+                    "from": sender_name,
+                    "text": text
+                })
+
         if chat_type == "private" or is_bot_mentioned(message):
             clean_text = text.replace("@CASIDDBOT", "").replace("@casiddbot", "").strip()
 
@@ -414,7 +462,7 @@ def webhook():
                     clean_text = f"{replied_name} asked: {replied_text}"
 
             if clean_text:
-                reply = get_reply(clean_text)
+                reply = get_reply(clean_text, chat_id=chat_id)
                 send_message(chat_id, reply, reply_to_message_id=message_id)
 
     return "ok"
