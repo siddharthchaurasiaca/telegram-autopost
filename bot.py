@@ -40,18 +40,18 @@ Step 5: For any help → DM CA Siddharth directly
 1. Nifty Directional (Weekly)
 Trades Nifty 50 options every week
 Strategy Link: https://tradetron.tech/strategy/8772701
-9a84fb4e-cae7-4b6e-ac6c-823eebcb10ce
+Share Code: 9a84fb4e-cae7-4b6e-ac6c-823eebcb10ce
 
 2. Sensex Directional (Weekly)
 Trades Sensex options every week
 Strategy Link: https://tradetron.tech/strategy/8821625
-b2c09e80-1ae6-42f8-b692-5b8fa8a488a9
+Share Code: b2c09e80-1ae6-42f8-b692-5b8fa8a488a9
 
 3. Nifty + BNF Hybrid
 Bank Nifty traded only in last week of monthly expiry
 Nifty traded all other weeks
 Strategy Link: https://tradetron.tech/strategy/8831697
-39a41ef4-a846-4b7d-986b-6b88948c94cc
+Share Code: 39a41ef4-a846-4b7d-986b-6b88948c94cc
 
 Always share these links directly when asked. Never ask user to DM for share codes.
 
