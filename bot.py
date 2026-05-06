@@ -65,6 +65,13 @@ Risk Management: Dynamic banking-based adjustments
 Max Drawdown: Up to 25% possible
 Evaluation Period: Minimum 3 months or after max drawdown
 
+=== POSITION STRUCTURE ===
+The strategy operates using 4 lots total per multiplier.
+While directional in nature, it is not always purely one-sided.
+Positions are taken in varying CE to PE ratios depending on market conditions:
+4:0 (fully bearish), 3:1, 2:2 (neutral), 1:3, or 0:4 (fully bullish)
+This flexible ratio approach allows the strategy to adapt to different market scenarios while staying within the overall directional framework.
+
 === DYNAMIC INDEX ALLOCATION ===
 Bank Nifty: Traded only in last week of monthly expiry
 Nifty 50: Traded during all other weeks
